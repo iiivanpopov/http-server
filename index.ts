@@ -14,5 +14,13 @@ router.get('/users', (req: Request): Response => {
 	)
 })
 
+router.delete('/post', (req: Request): Response => {
+	return new Response(
+		JSON.stringify({
+			message: 'Deleted post.',
+		})
+	)
+})
+
 const httpServer = new HttpServer(3000)
 httpServer.addRouter(router)

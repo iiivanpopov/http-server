@@ -1,20 +1,18 @@
 import type { Server } from 'bun'
 import Exceptions from './Exceptions'
 import type Router from './Router'
-import type { Endpoint, Middleware } from './types'
+import type { Endpoint } from './types'
 import { normalizePath } from './utils/index'
 
 export default class HttpServer {
 	private _httpServer: Server
 	port: number
 	private _routes: Record<string, Endpoint>
-	private middlewares: Middleware[]
 
 	constructor(port: number) {
 		this.port = port
 		this._routes = {}
 		this._httpServer = this._createServer()
-		this.middlewares = []
 	}
 
 	addRouter(router: Router) {
@@ -22,10 +20,6 @@ export default class HttpServer {
 			const endpoint = router.endpoints[path]
 			this._routes[path] = endpoint
 		})
-	}
-
-	use(middleware: Middleware) {
-		this.middlewares.push(middleware)
 	}
 
 	async handleRequest(req: Request): Promise<Response> {
@@ -45,10 +39,6 @@ export default class HttpServer {
 			const handler = endpoint[req.method]
 			if (!handler) {
 				return Exceptions.methodNotAllowedResponse(req.method, path)
-			}
-
-			for (const middleware of this.middlewares) {
-				await middleware(req, null)
 			}
 
 			const response = await handler(req)
