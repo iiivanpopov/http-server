@@ -1,0 +1,16 @@
+{
+	"name": "http-server",
+	"module": "index.ts",
+	"type": "module",
+	"scripts": {
+		"start:dev": "bun --hot run ./index.ts",
+		"start:prod": "bun ./dist/bundle.js",
+		"build": "bun build ./index.ts --outfile ./dist/bundle.js --target bun --minify"
+	},
+	"devDependencies": {
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5.0.0"
+	}
+}
