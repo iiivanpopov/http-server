@@ -1,18 +1,22 @@
 import type { Server } from 'bun'
-import Exceptions from './Exceptions'
+import ServerError from './exceptions/ServerError'
 import type Router from './Router'
-import type { Endpoint } from './types'
-import { normalizePath } from './utils/index'
+import type { Endpoint, Middleware } from './types'
+import { logger } from './utils/Logger'
 
 export default class HttpServer {
+	private _port: number
 	private _httpServer: Server
-	port: number
-	private _routes: Record<string, Endpoint>
+	private _routes: Record<string, Endpoint> = {}
+	private _middlewares: Middleware[] = []
 
-	constructor(port: number) {
-		this.port = port
-		this._routes = {}
-		this._httpServer = this._createServer()
+	get port() {
+		return this._port
+	}
+
+	constructor(port: number = 3000) {
+		this._port = port
+		this._httpServer = this._runServer()
 	}
 
 	addRouter(router: Router) {
@@ -22,43 +26,63 @@ export default class HttpServer {
 		})
 	}
 
-	async handleRequest(req: Request): Promise<Response> {
+	private _handleRequest = async (req: Request): Promise<Response> => {
 		try {
-			if (Object.keys(this._routes).length === 0) {
+			if (Object.keys(this._routes).length == 0) {
 				throw new Error('No routes are active.')
 			}
 
 			const url = new URL(req.url)
-			const path = normalizePath(url.pathname)
-			const endpoint = this._routes[path]
+			const path = url.pathname
 
+			const endpoint = this._routes[path]
 			if (!endpoint) {
-				return Exceptions.notFoundResponse(req.method, path)
+				throw ServerError.EndpointNotFound(req.method, path)
 			}
 
 			const handler = endpoint[req.method]
 			if (!handler) {
-				return Exceptions.methodNotAllowedResponse(req.method, path)
+				throw ServerError.HandlerNotFound(req.method, path)
 			}
 
-			const response = await handler(req)
-			response?.headers.append('Content-type', 'application/json')
+			const responseBody = await handler(req)
+
+			let response = new Response(JSON.stringify(responseBody))
+
+			for (const middleware of this._middlewares) {
+				const middlewareResponse = await middleware(req, response)
+
+				if (middlewareResponse) {
+					response = new Response(middlewareResponse)
+				}
+			}
 
 			return response
 		} catch (error) {
-			return Exceptions.internalServerErrorResponse(error)
+			throw ServerError.InternalServerError(error)
 		}
 	}
 
-	private _createServer() {
+	use(middleware: Middleware) {
+		this._middlewares.push(middleware)
+	}
+
+	close() {
+		this._httpServer.stop()
+	}
+
+	private _runServer = () => {
 		const instance = this
+
 		const server = Bun.serve({
-			fetch(req: Request): Promise<Response> {
-				return instance.handleRequest(req)
+			fetch(req: Request): Response | Promise<Response> {
+				return instance._handleRequest(req)
 			},
 			port: instance.port,
 		})
-		console.log(`Created Http server at ${instance.port}`)
+
+		logger.log(`Started HTTP server at ${server.url}`)
+
 		return server
 	}
 }

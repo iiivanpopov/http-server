@@ -1,11 +1,12 @@
 {
 	"name": "http-server",
-	"module": "index.ts",
+	"module": "./src/index.ts",
 	"type": "module",
 	"scripts": {
 		"start:dev": "bun --hot run ./index.ts",
 		"start:prod": "bun ./dist/bundle.js",
-		"build": "bun build ./index.ts --outfile ./dist/bundle.js --target bun --minify"
+		"build:dev": "bun build ./index.ts --outfile ./dist/bundle.js --sourcemap=inline --target bun --minify",
+		"build:prod": "bun build ./index.ts --outfile ./dist/bundle.js --target bun --minify"
 	},
 	"devDependencies": {
 		"@types/bun": "latest"

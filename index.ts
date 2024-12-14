@@ -1,26 +1,22 @@
 import HttpServer from './src/HttpServer'
+import bodyParser from './src/middlewares/bodyParser'
+import json from './src/middlewares/json'
 import Router from './src/Router'
 
 const router = new Router()
 
-router.get('/users', (req: Request): Response => {
-	return new Response(
-		JSON.stringify({
-			users: [
-				{ id: 1, username: 'Ivan' },
-				{ id: 2, username: 'Popov' },
-			],
-		})
-	)
+router.post('/users', (req: Request) => {
+	return {
+		users: [
+			{ id: 1, username: 'Ivan' },
+			{ id: 2, username: 'Popov' },
+		],
+	}
 })
 
-router.delete('/post', (req: Request): Response => {
-	return new Response(
-		JSON.stringify({
-			message: 'Deleted post.',
-		})
-	)
-})
+const httpServer = new HttpServer()
 
-const httpServer = new HttpServer(3000)
 httpServer.addRouter(router)
+httpServer.use(json)
+httpServer.use(bodyParser)
+httpServer.use(req => console.log(req.body))

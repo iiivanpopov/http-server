@@ -1,42 +1,43 @@
-import type { Callback, Endpoints } from './types'
+import ServerError from './exceptions/ServerError'
+import type { Callback, Endpoints, Method } from './types'
 
 export default class Router {
-	endpoints: Endpoints = {}
+	private _endpoints: Endpoints = {}
 
-	constructor() {
-		this.endpoints = {}
+	get endpoints() {
+		return this._endpoints
 	}
 
-	request(method: string = 'GET', path: string, handler: Callback) {
-		if (!this.endpoints[path]) {
-			this.endpoints[path] = {}
+	private _request(method: Method, path: string, handler: Callback) {
+		if (!this._endpoints[path]) {
+			this._endpoints[path] = {}
 		}
-		const endpoint = this.endpoints[path]
+		const endpoint = this._endpoints[path]
 
 		if (endpoint[method]) {
-			throw new Error(`[${method}] at ${path} already exists.`)
+			throw ServerError.MethodAlreadyExists(method, path)
 		}
 
 		endpoint[method] = handler
 	}
 
 	get(path: string, handler: Callback) {
-		this.request('GET', path, handler)
+		this._request('GET', path, handler)
 	}
 
 	post(path: string, handler: Callback) {
-		this.request('POST', path, handler)
+		this._request('POST', path, handler)
 	}
 
 	delete(path: string, handler: Callback) {
-		this.request('DELETE', path, handler)
+		this._request('DELETE', path, handler)
 	}
 
 	put(path: string, handler: Callback) {
-		this.request('PUT', path, handler)
+		this._request('PUT', path, handler)
 	}
 
 	patch(path: string, handler: Callback) {
-		this.request('PATCH', path, handler)
+		this._request('PATCH', path, handler)
 	}
 }

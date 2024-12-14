@@ -1,8 +1,8 @@
 {
 	"compilerOptions": {
 		// Enable latest features
-		"target": "ES2023",
-		"module": "ES2022",
+		"target": "ESNext",
+		"module": "ESNext",
 		"moduleDetection": "force",
 
 		// Bundler mode
@@ -15,10 +15,13 @@
 		"strict": true,
 		"skipLibCheck": true,
 		"noFallthroughCasesInSwitch": true,
+		"useUnknownInCatchVariables": true,
 
 		// Some stricter flags (disabled by default)
-		"noUnusedLocals": false,
+		"noImplicitAny": true,
+		"noUnusedLocals": true,
 		"noUnusedParameters": false,
-		"noPropertyAccessFromIndexSignature": false
+		"noPropertyAccessFromIndexSignature": true,
+		"forceConsistentCasingInFileNames": true
 	}
 }
