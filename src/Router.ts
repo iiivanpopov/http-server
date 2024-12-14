@@ -1,4 +1,4 @@
-import ServerError from './exceptions/ServerError'
+import ApiError from './exceptions/ApiError'
 import type { Callback, Endpoints, Method } from './types'
 
 export default class Router {
@@ -15,7 +15,9 @@ export default class Router {
 		const endpoint = this._endpoints[path]
 
 		if (endpoint[method]) {
-			throw ServerError.MethodAlreadyExists(method, path)
+			throw ApiError.InternalServerError(
+				`Method ${method} at ${path} already exists`
+			)
 		}
 
 		endpoint[method] = handler
